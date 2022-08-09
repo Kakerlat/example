@@ -143,11 +143,45 @@ topFrame2R = Frame(topFrame2, bd=5, width=190, height=300, relief=RIDGE)
 topFrame2R.grid(row=0, column=2, padx=12)
 
 # ================================Functions================================================================
+
+
 def enter_Pin():
+
+    db = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        passwd='KobusKoetsee12!',
+        database="bank"
+    )
     # This is the function that handels everything that happens if enter button is clicked
+    c = db.cursor()
 
     pinNo = root.txtReciept.get("1.0", "end-1c")
-    if ((pinNo == str('0199')) or (pinNo == str("4323")) or (pinNo == str("5982"))):
+    print(pinNo)
+
+    c.execute(f"SELECT balance FROM bankdetials WHERE pin = '{pinNo}'")
+    pin = c.fetchone()
+
+    global j_balance
+    j_balance = pin[0]
+    j_balance = str(j_balance)
+
+    print(type(j_balance))
+
+    c.execute(f"SELECT pin FROM bankdetials WHERE pin = '{pinNo}'")
+    frog = c.fetchone()
+    global j_pin
+    j_pin = frog[0]
+    j_pin = str(j_pin)
+
+    db.commit()
+
+    count = c.rowcount
+
+    db.close()
+
+    if (count != 0):
+
         root.txtReciept.delete("1.0", END)
 
         root.txtReciept.insert(END, "\t\t ATM" + "\n\n")
@@ -181,9 +215,37 @@ def enter_Pin():
         root.txtReciept.insert(END, "\t\t Invalid Pin " + "\n")
         root.txtReciept.insert(END, "\t\t Try Again " + "\n\n\n\n")
 
+    return
 
+def main_menu():
 
+    root.txtReciept.delete("1.0", END)
 
+    root.txtReciept.insert(END, "\t\t ATM" + "\n\n")
+    root.txtReciept.insert(END, "Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
+    root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
+    root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
+    root.txtReciept.insert(END, "Mini Statement\t\t\t Print Statement" + "\n\n\n\n\n")
+    # ================================LEFT Buttons============================================================
+    root.btnArL1 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=withdraw) \
+        .grid(row=0, column=0, padx=2, pady=2)
+    root.btnArL2 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=reciept) \
+        .grid(row=1, column=0, padx=2, pady=2)
+    root.btnArL3 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=balance) \
+        .grid(row=2, column=0, padx=2, pady=2)
+    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=ministatement) \
+        .grid(row=3, column=0, padx=2, pady=2)
+    # ================================RIGHT Buttons===========================================================
+    root.btnArR1 = Button(topFrame2R, width=145, height=65, state=NORMAL, image=rightARNew, command=Loan) \
+        .grid(row=0, column=0, padx=2, pady=2)
+    root.btnArR2 = Button(topFrame2R, width=145, height=65, state=NORMAL, image=rightARNew, command=deposit) \
+        .grid(row=1, column=0, padx=2, pady=2)
+    root.btnArR3 = Button(topFrame2R, width=145, height=65, state=NORMAL, image=rightARNew, command=requestPin) \
+        .grid(row=2, column=0, padx=2, pady=2)
+    root.btnArR4 = Button(topFrame2R, width=145, height=65, state=NORMAL, image=rightARNew, command=statement) \
+        .grid(row=3, column=0, padx=2, pady=2)
+
+    return
 def Clear():
     # This is the functions that handels everything that happens when clear button is clicked
     root.txtReciept.delete("1.0", END)
@@ -216,39 +278,115 @@ def Cancel_Transaction():
     return
 
 
+
 def withdraw():
     # this function handels what happens if you want to withdraw
-    enter_Pin()
+    # Destroy widgets to add new widgets
+    # for item in topFrame2L.winfo_children():
+    #     item.destroy()
+
     root.txtReciept.delete("1.0", END)
 
-    root.txtReciept.focus_set()
-    root.txtReciept.insert(END, "\n\n""Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Mini Statement\t\t\t Print Statement" + "\n")
-    root.txtReciept.insert(END, "How Much do you want to withdraw: \n$")
+
+    # root.txtReciept.insert(END, "\n\n""Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
+    # root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
+    # root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")\
+    root.txtReciept.insert(END, "\n\n main menu \n")
+    root.txtReciept.insert(END, "\n\n\n\nPress -> to withdraw  \n")
+    root.txtReciept.insert(END, "\n\n\nHow Much do you want to withdraw: \n$")
+
+
+
+
+    def withdraw_amount():
+        print(type(j_balance))
+
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            passwd='KobusKoetsee12!',
+            database="bank"
+        )
+        # This is the function that handels everything that happens if enter button is clicked
+        c = db.cursor()
+
+        check = root.txtReciept.get("13.1", "13.30")
+        print("check", check)
+        new_balance = int(j_balance) - int(check)
+        new_balance = str(new_balance)
+        c.execute(f"UPDATE bankdetials SET balance = '{new_balance}' WHERE pin = '{j_pin}'")
+
+        db.commit()
+        db.close()
+
+        root.txtReciept.insert(END, f"\n Your have withdrawn R{check}  \n")
+
+    root.btnArL1 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=main_menu) \
+        .grid(row=0, column=0, padx=2, pady=2)
+    root.btnArL2 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=withdraw_amount) \
+        .grid(row=1, column=0, padx=2, pady=2)
+    root.btnArL3 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=balance) \
+        .grid(row=2, column=0, padx=2, pady=2)
+    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=ministatement) \
+        .grid(row=3, column=0, padx=2, pady=2)
+
+
+
+
 
 
 
 
 def deposit():
     # this function handels what happens if you want to deposit
-    enter_Pin()
+
+
+
     root.txtReciept.delete("1.0", END)
 
-    root.txtReciept.focus_set()
-    root.txtReciept.insert(END, "\n\nWithdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Mini Statement\t\t\t Print Statement" + "\n")
-    root.txtReciept.insert(END, "How Much do you want to Deposit: $")
+    # root.txtReciept.insert(END, "\n\n""Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
+    # root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
+    # root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")\
+    root.txtReciept.insert(END, "\n\n main menu \n")
+    root.txtReciept.insert(END, "\n\n\n\nPress -> to deposit  \n")
+    root.txtReciept.insert(END, "\n\n\nHow Much do you want to deposit: \n$")
 
+    def deposit_amount():
+        print(type(j_balance))
 
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            passwd='KobusKoetsee12!',
+            database="bank"
+        )
+        # This is the function that handels everything that happens if enter button is clicked
+        c = db.cursor()
+
+        check = root.txtReciept.get("13.1", "13.30")
+        print("check", check)
+        new_balance = int(j_balance) + int(check)
+        new_balance = str(new_balance)
+        c.execute(f"UPDATE bankdetials SET balance = '{new_balance}' WHERE pin = '{j_pin}'")
+
+        db.commit()
+        db.close()
+
+        root.txtReciept.insert(END, f"\nYour have Deposited R{check}  \n")
+
+    root.btnArL1 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=main_menu) \
+        .grid(row=0, column=0, padx=2, pady=2)
+    root.btnArL2 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=deposit_amount) \
+        .grid(row=1, column=0, padx=2, pady=2)
+    root.btnArL3 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=balance) \
+        .grid(row=2, column=0, padx=2, pady=2)
+    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=ministatement) \
+        .grid(row=3, column=0, padx=2, pady=2)
 
 
 def Loan():
     # this function handles what happens if you want to take out a loan
-    enter_Pin()
+
     root.txtReciept.delete("1.0", END)
 
     root.txtReciept.focus_set()
@@ -260,9 +398,9 @@ def Loan():
 
 def balance():
     # this function handles what happens if you want to check your balance
-    enter_Pin()
+
     root.txtReciept.delete("1.0", END)
-    root.txtReciept.insert(END, "Your Balance: \n$60000  \n")
+    root.txtReciept.insert(END, f"Your Balance: \n${j_balance}  \n")
     root.txtReciept.insert(END, "Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
     root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
     root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
@@ -270,7 +408,7 @@ def balance():
 
 def statement():
         # this function handles what happens if you want to check your statement
-        enter_Pin()
+
         root.txtReciept.delete("1.0", END)
         root.txtReciept.insert(END, "Your Balance: \n$60000  \n")
         root.txtReciept.insert(END, "09/02\t KFC........................$5.00" + "\n")
@@ -290,7 +428,7 @@ def statement():
 
 def ministatement():
     # this function handles what happens if you want to check your mini statement
-    enter_Pin()
+
     root.txtReciept.delete("1.0", END)
     root.txtReciept.insert(END, "Your Balance: \n$60000  \n")
     root.txtReciept.insert(END, "Payments from beginning of the year-present  \n\n")
@@ -308,7 +446,7 @@ def ministatement():
 
 def reciept():
     # this function handels what happens if you want to have cash and it gives you a reciept
-    enter_Pin()
+
     root.txtReciept.delete("1.0", END)
     root.txtReciept.insert(END, "       Thank you for using Goliath National Bank" + "\n\n")
     root.txtReciept.insert(END, "Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
@@ -319,7 +457,7 @@ def reciept():
 
 
 def requestPin():
-    enter_Pin()
+
     root.txtReciept.delete("1.0", END)
     root.txtReciept.insert(END, "\t             Welcome to GNB\n")
     root.txtReciept.insert(END, "\t         Enter Home Address at the end\n")
