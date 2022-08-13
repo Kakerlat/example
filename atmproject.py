@@ -307,14 +307,21 @@ def withdraw():
         # This is the function that handels everything that happens if enter button is clicked
         c = db.cursor()
 
+        c.execute(f"SELECT changing_balance FROM transactions WHERE pin = '{j_pin}'")
+        dynamic_balance = c.fetchall()
+        dynamic_balance = dynamic_balance[-1][0]
+        print("dynamic balance", dynamic_balance)
+
         check = root.txtReciept.get("13.1", "13.30")
         print("check", check)
-        new_balance = int(j_balance) - int(check)
+        new_balance = 0
+        new_balance = int(dynamic_balance) - int(check)
         new_balance = str(new_balance)
+        print("new balance", new_balance)
 
 
         currdate = datetime.today()
-        print(currdate)
+
 
         # official but keep closed for now
         c.execute(f"""INSERT INTO transactions(transaction_type, amount, tdate, pin, changing_balance)
@@ -360,9 +367,14 @@ def deposit():
         # This is the function that handels everything that happens if enter button is clicked
         c = db.cursor()
 
+        c.execute(f"SELECT changing_balance FROM transactions WHERE pin = '{j_pin}'")
+        dynamic_balance = c.fetchall()
+        dynamic_balance = dynamic_balance[-1][0]
+        print("the dynamic balance", dynamic_balance)
+
         check = root.txtReciept.get("13.1", "13.30")
         print("check", check)
-        new_balance = int(j_balance) + int(check)
+        new_balance = int(dynamic_balance) + int(check)
         new_balance = str(new_balance)
 
         currdate = datetime.today()
