@@ -5,7 +5,9 @@ from tkinter import messagebox
 import mysql.connector
 from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
+from matplotlib import style
 from matplotlib import dates as mpl_dates
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # db = mysql.connector.connect(
 #     host="localhost",
@@ -222,6 +224,8 @@ def enter_Pin():
 
 
 def main_menu():
+    for item in root.txtReciept.winfo_children():
+        item.destroy()
 
     root.txtReciept.delete("1.0", END)
 
@@ -468,11 +472,10 @@ def graph():
 
     def show_graph():
 
-        plt.style.use('seaborn')
-        plt.grid(True)
-        plt.xlabel('Date')
-        plt.ylabel('Transactions')
-        plt.title('Daily transactions')
+        plt.style.use('grayscale')
+        # plt.gcf().autofmt_xdate()
+        # plt.grid(True)
+
 
         db = mysql.connector.connect(
             host="localhost",
@@ -503,9 +506,23 @@ def graph():
         print(amount_y)
         print(datetime)
 
-        plt.plot_date(date_x, amount_y, marker='o', linestyle='-')
-        plt.gcf().autofmt_xdate()
-        plt.show()
+        fig = plt.Figure(figsize=(5,6),dpi=60)
+
+        grid = plt.grid()
+
+
+        fig.add_subplot(111).plot_date(date_x, amount_y,'o-')
+
+        chart = FigureCanvasTkAgg(fig,root.txtReciept)
+
+        chart.get_tk_widget().grid(row=0, column=0)
+
+
+
+
+        # plt.plot_date(date_x, amount_y, marker='o', linestyle='-')
+        # plt.gcf().autofmt_xdate()
+        # plt.show()
 
     root.btnArL1 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=show_graph) \
         .grid(row=0, column=0, padx=2, pady=2)
