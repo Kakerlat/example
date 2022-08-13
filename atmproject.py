@@ -3,6 +3,9 @@ from tkinter import *
 from PIL import ImageTk, Image
 from tkinter import messagebox
 import mysql.connector
+from datetime import datetime, timedelta
+from matplotlib import pyplot as plt
+from matplotlib import dates as mpl_dates
 
 # db = mysql.connector.connect(
 #     host="localhost",
@@ -159,20 +162,23 @@ def enter_Pin():
     pinNo = root.txtReciept.get("1.0", "end-1c")
     print(pinNo)
 
-    c.execute(f"SELECT balance FROM bankdetials WHERE pin = '{pinNo}'")
-    pin = c.fetchone()
+    c.execute(f"SELECT changing_balance FROM transactions WHERE pin = '{pinNo}'")
+    pin = c.fetchall()
+    count = c.rowcount
 
-    global j_balance
-    j_balance = pin[0]
-    j_balance = str(j_balance)
+    if (count != 0):
 
-    print(type(j_balance))
+        global j_balance
+        j_balance = pin[-1][0]
+        j_balance = str(j_balance)
 
-    c.execute(f"SELECT pin FROM bankdetials WHERE pin = '{pinNo}'")
-    frog = c.fetchone()
-    global j_pin
-    j_pin = frog[0]
-    j_pin = str(j_pin)
+        print(type(j_balance))
+
+        c.execute(f"SELECT pin FROM bankdetials WHERE pin = '{pinNo}'")
+        frog = c.fetchone()
+        global j_pin
+        j_pin = frog[0]
+        j_pin = str(j_pin)
 
     db.commit()
 
@@ -188,7 +194,7 @@ def enter_Pin():
         root.txtReciept.insert(END, "Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
         root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
         root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
-        root.txtReciept.insert(END, "Mini Statement\t\t\t Print Statement" + "\n\n\n\n\n")
+        root.txtReciept.insert(END, "Transacton graph\t\t\t Print Statement" + "\n\n\n\n\n")
         # ================================LEFT Buttons============================================================
         root.btnArL1 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=withdraw)\
         .grid(row=0, column=0, padx=2, pady=2)
@@ -196,7 +202,7 @@ def enter_Pin():
         .grid(row=1, column=0, padx=2, pady=2)
         root.btnArL3 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=balance)\
         .grid(row=2, column=0, padx=2, pady=2)
-        root.btnArL4 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=ministatement)\
+        root.btnArL4 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=graph)\
         .grid(row=3, column=0, padx=2, pady=2)
         # ================================RIGHT Buttons===========================================================
         root.btnArR1 = Button(topFrame2R, width=145, height=65, state=NORMAL, image=rightARNew, command=Loan)\
@@ -208,14 +214,12 @@ def enter_Pin():
         root.btnArR4 = Button(topFrame2R, width=145, height=65, state=NORMAL, image=rightARNew, command=statement)\
         .grid(row=3, column=0, padx=2, pady=2)
 
-
-
     else:
         root.txtReciept.delete("1.0", END)
         root.txtReciept.insert(END, "\t\t Invalid Pin " + "\n")
         root.txtReciept.insert(END, "\t\t Try Again " + "\n\n\n\n")
 
-    return
+
 
 def main_menu():
 
@@ -225,7 +229,7 @@ def main_menu():
     root.txtReciept.insert(END, "Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
     root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
     root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Mini Statement\t\t\t Print Statement" + "\n\n\n\n\n")
+    root.txtReciept.insert(END, "Transaction graph\t\t\t Print Statement" + "\n\n\n\n\n")
     # ================================LEFT Buttons============================================================
     root.btnArL1 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=withdraw) \
         .grid(row=0, column=0, padx=2, pady=2)
@@ -233,7 +237,7 @@ def main_menu():
         .grid(row=1, column=0, padx=2, pady=2)
     root.btnArL3 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=balance) \
         .grid(row=2, column=0, padx=2, pady=2)
-    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=ministatement) \
+    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=graph) \
         .grid(row=3, column=0, padx=2, pady=2)
     # ================================RIGHT Buttons===========================================================
     root.btnArR1 = Button(topFrame2R, width=145, height=65, state=NORMAL, image=rightARNew, command=Loan) \
@@ -256,7 +260,7 @@ def Clear():
     .grid(row=1, column=0, padx=2, pady=2)
     root.btnArL3 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=balance)\
     .grid(row=2, column=0, padx=2, pady=2)
-    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=ministatement)\
+    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=graph)\
     .grid(row=3, column=0, padx=2, pady=2)
     # ================================RIGHT Buttons===========================================================
     root.btnArR1 = Button(topFrame2R, width=145, height=65, state=DISABLED, image=rightARNew, command=Loan)\
@@ -287,16 +291,9 @@ def withdraw():
 
     root.txtReciept.delete("1.0", END)
 
-
-    # root.txtReciept.insert(END, "\n\n""Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
-    # root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
-    # root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")\
     root.txtReciept.insert(END, "\n\n main menu \n")
     root.txtReciept.insert(END, "\n\n\n\nPress -> to withdraw  \n")
     root.txtReciept.insert(END, "\n\n\nHow Much do you want to withdraw: \n$")
-
-
-
 
     def withdraw_amount():
         print(type(j_balance))
@@ -314,7 +311,19 @@ def withdraw():
         print("check", check)
         new_balance = int(j_balance) - int(check)
         new_balance = str(new_balance)
-        c.execute(f"UPDATE bankdetials SET balance = '{new_balance}' WHERE pin = '{j_pin}'")
+
+
+        currdate = datetime.today()
+        print(currdate)
+
+        # official but keep closed for now
+        c.execute(f"""INSERT INTO transactions(transaction_type, amount, tdate, pin, changing_balance)
+                      VALUES('withdraw', '{check}', '{currdate}', '{j_pin}', '{new_balance}')""")
+
+        # c.execute(f"""INSERT INTO transactions(transaction_type, amount, tdate, pin, changing_balance)
+        #               VALUES('withdraw', '{check}', '2022-08-10', '{j_pin}', '{new_balance}')""")
+
+        print(balance)
 
         db.commit()
         db.close()
@@ -327,26 +336,14 @@ def withdraw():
         .grid(row=1, column=0, padx=2, pady=2)
     root.btnArL3 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=balance) \
         .grid(row=2, column=0, padx=2, pady=2)
-    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=ministatement) \
+    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=graph) \
         .grid(row=3, column=0, padx=2, pady=2)
-
-
-
-
-
-
-
 
 def deposit():
     # this function handels what happens if you want to deposit
 
-
-
     root.txtReciept.delete("1.0", END)
 
-    # root.txtReciept.insert(END, "\n\n""Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
-    # root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
-    # root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")\
     root.txtReciept.insert(END, "\n\n main menu \n")
     root.txtReciept.insert(END, "\n\n\n\nPress -> to deposit  \n")
     root.txtReciept.insert(END, "\n\n\nHow Much do you want to deposit: \n$")
@@ -367,7 +364,13 @@ def deposit():
         print("check", check)
         new_balance = int(j_balance) + int(check)
         new_balance = str(new_balance)
-        c.execute(f"UPDATE bankdetials SET balance = '{new_balance}' WHERE pin = '{j_pin}'")
+
+        currdate = datetime.today()
+        print(currdate)
+
+        # official but keep closed for now
+        c.execute(f"""INSERT INTO transactions(transaction_type, amount, tdate, pin, changing_balance)
+                             VALUES('deposit', '{check}', '{currdate}', '{j_pin}', '{new_balance}')""")
 
         db.commit()
         db.close()
@@ -380,7 +383,7 @@ def deposit():
         .grid(row=1, column=0, padx=2, pady=2)
     root.btnArL3 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=balance) \
         .grid(row=2, column=0, padx=2, pady=2)
-    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=ministatement) \
+    root.btnArL4 = Button(topFrame2L, width=145, height=65, state=DISABLED, image=leftARNew, command=graph) \
         .grid(row=3, column=0, padx=2, pady=2)
 
 
@@ -398,13 +401,31 @@ def Loan():
 
 def balance():
     # this function handles what happens if you want to check your balance
+    db = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        passwd='KobusKoetsee12!',
+        database="bank"
+    )
+    # This is the function that handels everything that happens if enter button is clicked
+    c = db.cursor()
+
+    c.execute(f"SELECT changing_balance FROM transactions WHERE pin = '{j_pin}'")
+    updated_balance = c.fetchall()
+    updated_balance = updated_balance[-1][0]
+    print(updated_balance)
+
+
+    db.commit()
+    db.close()
+
 
     root.txtReciept.delete("1.0", END)
-    root.txtReciept.insert(END, f"Your Balance: \n${j_balance}  \n")
-    root.txtReciept.insert(END, "Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Mini Statement\t\t\t Print Statement" + "\n\n\n\n\n")
+    root.txtReciept.insert(END, f"Your Balance: \n${updated_balance}  \n")
+    # root.txtReciept.insert(END, "Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
+    # root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
+    # root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
+    # root.txtReciept.insert(END, "Transaction graph\t\t\t Print Statement" + "\n\n\n\n\n")
 
 def statement():
         # this function handles what happens if you want to check your statement
@@ -426,22 +447,56 @@ def statement():
         root.txtReciept.insert(END, "---------------------------------------------------------------------""\n")
         root.txtReciept.insert(END, " TOTAL......................................$1021622" + "\n")
 
-def ministatement():
+def graph():
     # this function handles what happens if you want to check your mini statement
 
     root.txtReciept.delete("1.0", END)
-    root.txtReciept.insert(END, "Your Balance: \n$60000  \n")
-    root.txtReciept.insert(END, "Payments from beginning of the year-present  \n\n")
-    root.txtReciept.insert(END, "---------------------------------------------------------------------""\n")
-    root.txtReciept.insert(END, "January 2021.......$0.00  \n")
-    root.txtReciept.insert(END, "February 2021......$5405.00   \n")
-    root.txtReciept.insert(END, "March 2021...........$8621.00   \n")
-    root.txtReciept.insert(END, "April 2021..............$0.00   \n")
-    root.txtReciept.insert(END, "May 2021...............$0.00   \n")
-    root.txtReciept.insert(END, "June 2021.............$1007596   \n")
-    root.txtReciept.insert(END, " + \n")
-    root.txtReciept.insert(END, "---------------------------------------------------------------------""\n")
-    root.txtReciept.insert(END, " TOTAL......................................$1021622" + "\n")
+    root.txtReciept.insert(END, "Press to show transaction graph:")
+
+
+    def show_graph():
+
+        plt.style.use('seaborn')
+        plt.grid(True)
+        plt.xlabel('Date')
+        plt.ylabel('Transactions')
+        plt.title('Daily transactions')
+
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            passwd='KobusKoetsee12!',
+            database="bank"
+        )
+
+        c = db.cursor()
+
+        c.execute("SELECT tdate FROM transactions")
+        dates = c.fetchall()
+
+        c.execute("SELECT changing_balance FROM transactions")
+        amounts = c.fetchall()
+        date_x = []
+        amount_y = []
+
+        for date in dates:
+            tr = date[0]
+            date_x.append(tr)
+
+        for amount in amounts:
+            amt = int(amount[0])
+            amount_y.append(amt)
+
+        print(date_x)
+        print(amount_y)
+        print(datetime)
+
+        plt.plot_date(date_x, amount_y, marker='o', linestyle='-')
+        plt.gcf().autofmt_xdate()
+        plt.show()
+
+    root.btnArL1 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=show_graph) \
+        .grid(row=0, column=0, padx=2, pady=2)
 
 
 def reciept():
@@ -470,7 +525,7 @@ def back():
     root.txtReciept.insert(END, "Withdraw Cash\t\t\t Loan" + "\n\n\n\n\n")
     root.txtReciept.insert(END, "Cash With Reciept\t\t\t Deposit" + "\n\n\n\n\n")
     root.txtReciept.insert(END, "Balance\t\t\t Request New Pin" + "\n\n\n\n\n")
-    root.txtReciept.insert(END, "Mini Statement\t\t\t Print Statement" + "\n\n\n\n\n")
+    root.txtReciept.insert(END, "Transaction graph\t\t\t Print Statement" + "\n\n\n\n\n")
 
 # This gives value 0 to button 0 and it also puts value at the end of txtreciept
 def btn0():
@@ -588,7 +643,7 @@ root.btnCancel = Button(topFrame1, width=145, height=65, state=NORMAL, image=can
 .grid(row=1, column=3, padx=2, pady=2)
 root.btnEnter = Button(topFrame1, width=145, height=65, state=NORMAL, image=enterNew, command=enter_Pin)\
 .grid(row=2, column=3, padx=2, pady=2)
-root.btnPlain3 = Button(topFrame1, width=145, height=65, state=NORMAL, image=rightARNew, command=back)\
+root.btnPlain3 = Button(topFrame1, width=145, height=65, state=NORMAL, image=rightARNew, command=main_menu)\
 .grid(row=3, column=3, padx=2, pady=2)
 
 
