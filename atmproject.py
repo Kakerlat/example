@@ -506,9 +506,9 @@ def graph():
         print(amount_y)
         print(datetime)
 
-        fig = plt.Figure(figsize=(5,6),dpi=60)
+        fig = plt.Figure(figsize=(4.0,4.3), dpi=70)
 
-        grid = plt.grid()
+
 
 
         fig.add_subplot(111).plot_date(date_x, amount_y,'o-')
