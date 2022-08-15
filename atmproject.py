@@ -5,9 +5,8 @@ from tkinter import messagebox
 import mysql.connector
 from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
-from matplotlib import style
-from matplotlib import dates as mpl_dates
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
 
 # db = mysql.connector.connect(
 #     host="localhost",
@@ -469,12 +468,43 @@ def graph():
     root.txtReciept.delete("1.0", END)
     root.txtReciept.insert(END, "Press to show transaction graph:")
 
+    def bar_graph():
+        # Balance for graph
+
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            passwd='KobusKoetsee12!',
+            database="bank"
+        )
+        # This is the function that handels everything that happens if enter button is clicked
+        c = db.cursor()
+
+        c.execute(f"SELECT changing_balance FROM transactions WHERE pin = '{j_pin}'")
+        user_balance = c.fetchall()
+        user_balance = user_balance[-1][0]
+        user_balance = int(user_balance)
+        print("User balance:", user_balance)
+
+        account = ['Balance','Savings','Loan']
+        amount = [user_balance, 500, 2000]
+        print(amount)
+
+        x_amount = np.arange(len(account))
+
+        plt.xticks(x_amount,account)
+
+        fig = plt.figure(figsize=(4.0, 4.3), dpi=70)
+        fig.add_subplot(111).bar(account, amount)
+        chart = FigureCanvasTkAgg(fig, root.txtReciept)
+        chart.get_tk_widget().grid(row=0, column=0)
 
     def show_graph():
 
+
         plt.style.use('grayscale')
         # plt.gcf().autofmt_xdate()
-        # plt.grid(True)
+        plt.grid(True)
 
 
         db = mysql.connector.connect(
@@ -486,10 +516,11 @@ def graph():
 
         c = db.cursor()
 
-        c.execute("SELECT tdate FROM transactions")
+        c.execute("SELECT tdate FROM transactions ORDER BY tdate ASC")
         dates = c.fetchall()
+        print(dates)
 
-        c.execute("SELECT changing_balance FROM transactions")
+        c.execute("SELECT changing_balance FROM transactions ORDER BY tdate ASC")
         amounts = c.fetchall()
         date_x = []
         amount_y = []
@@ -506,10 +537,7 @@ def graph():
         print(amount_y)
         print(datetime)
 
-        fig = plt.Figure(figsize=(4.0,4.3), dpi=70)
-
-
-
+        fig = plt.figure(figsize=(4.0,4.3), dpi=70)
 
         fig.add_subplot(111).plot_date(date_x, amount_y,'o-')
 
@@ -518,14 +546,14 @@ def graph():
         chart.get_tk_widget().grid(row=0, column=0)
 
 
-
-
-        # plt.plot_date(date_x, amount_y, marker='o', linestyle='-')
-        # plt.gcf().autofmt_xdate()
-        # plt.show()
+        plt.gcf().autofmt_xdate()
 
     root.btnArL1 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=show_graph) \
         .grid(row=0, column=0, padx=2, pady=2)
+    root.btnArL2 = Button(topFrame2L, width=145, height=65, state=NORMAL, image=leftARNew, command=bar_graph) \
+        .grid(row=1, column=0, padx=2, pady=2)
+
+
 
 
 def reciept():
