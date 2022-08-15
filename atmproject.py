@@ -466,7 +466,9 @@ def graph():
     # this function handles what happens if you want to check your mini statement
 
     root.txtReciept.delete("1.0", END)
-    root.txtReciept.insert(END, "Press to show transaction graph:")
+    root.txtReciept.insert(END, "\n\n Press to show transaction graph:\n\n\n\n\n")
+    root.txtReciept.insert(END, "Press to show Bar graph graph:")
+
 
     def bar_graph():
         # Balance for graph
@@ -490,14 +492,25 @@ def graph():
         amount = [user_balance, 500, 2000]
         print(amount)
 
+        # Maak eie varialbe sit name in (account)
         x_amount = np.arange(len(account))
 
+        # Geruik heirdie sit variable van x_amount en account
         plt.xticks(x_amount,account)
 
+        # Window size
         fig = plt.figure(figsize=(4.0, 4.3), dpi=70)
+        # Om plot op te maak, bar(x-axis,y-axis)
         fig.add_subplot(111).bar(account, amount)
+        # Dispaly canvas in tkinter in txtReciept
         chart = FigureCanvasTkAgg(fig, root.txtReciept)
         chart.get_tk_widget().grid(row=0, column=0)
+
+        plt.xlabel('Accounts')
+        plt.ylabel('Amount in R')
+        plt.title('Graphical account info')
+
+
 
     def show_graph():
 
