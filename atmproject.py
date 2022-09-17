@@ -4,11 +4,6 @@ from PIL import ImageTk, Image
 from tkinter import messagebox
 import mysql.connector
 
-# db = mysql.connector.connect(
-#     host="localhost",
-#     user="root",
-#     passwd='KobusKoetsee12!'
-# )
 
 
 #
